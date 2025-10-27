@@ -3,7 +3,7 @@ public class SistemaCloudBox {
 
     public SistemaCloudBox() {
         gestor = GestorVersiones.getInstancia();
-        gestor.agregarObservador(new Notificador());
+        gestor.agregarObserver(new Notificador());
     }
 
     public void subirArchivo(String nombre) {

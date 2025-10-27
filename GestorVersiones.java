@@ -6,7 +6,7 @@ import java.util.Map;
 public class GestorVersiones {
     private static GestorVersiones instancia;
     private Map<String, List<Archivo>> archivos;
-    private List<Observador> observadores;
+    private List<Observer> observadores;
 
     private GestorVersiones() {
         archivos = new HashMap<>();
@@ -20,21 +20,25 @@ public class GestorVersiones {
         return instancia;
     }
 
-    public void agregarObservador(Observador obs) {
+    public void agregarObserver(Observer obs) {
         observadores.add(obs);
     }
 
     private void notificar(String mensaje) {
-        for (Observador obs : observadores) {
+        for (Observer obs : observadores) {
             obs.actualizar(mensaje);
         }
+    }
+
+    private Archivo crearArchivo(String nombre, int version) {
+        return new Archivo(nombre, version);
     }
 
     public Archivo subirArchivo(String nombre) {
         List<Archivo> versiones = archivos.getOrDefault(nombre, new ArrayList<>());
         int nuevaVersion = versiones.size() + 1;
 
-        Archivo nuevoArchivo = new FabricaArchivos().crearArchivo(nombre, nuevaVersion);
+        Archivo nuevoArchivo = crearArchivo(nombre, nuevaVersion);
         versiones.add(nuevoArchivo);
         archivos.put(nombre, versiones);
 
