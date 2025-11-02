@@ -81,35 +81,44 @@ public class GestorVersiones {
 
     //sube archivo a MinIO y devuelve la url de acceso
     private String subirAMinIO(Path rutaArchivo) {
-        try (FileInputStream fis = new FileInputStream(rutaArchivo.toFile())) {
-            String objectName = rutaArchivo.getFileName().toString();
+    try (FileInputStream fis = new FileInputStream(rutaArchivo.toFile())) {
+        String objectName = rutaArchivo.getFileName().toString();
 
-            //subir archivo
-            minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .stream(fis, rutaArchivo.toFile().length(), -1)
-                            .contentType("text/plain")
-                            .build()
-            );
+        // Subir archivo al bucket
+        minioClient.putObject(
+                PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .stream(fis, rutaArchivo.toFile().length(), -1)
+                        .contentType("text/plain")
+                        .build()
+        );
 
-            //obtener url temporal
-            String url = minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .method(Method.GET)
-                            .bucket(bucketName)
-                            .object(objectName)
-                            .build()
-            );
+        // Obtener URL temporal de acceso
+        String url = minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                        .method(Method.GET)
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .build()
+        );
 
-            return url;
+        return url;
 
-        } catch (MinioException | IOException | InvalidKeyException | NoSuchAlgorithmException e) {
-            System.out.println("Error al subir a MinIO: " + e.getMessage());
-            return "Error al subir a MinIO";
-        }
+    } catch (io.minio.errors.ServerException |
+             io.minio.errors.InsufficientDataException |
+             io.minio.errors.ErrorResponseException |
+             io.minio.errors.InternalException |
+             io.minio.errors.XmlParserException |
+             io.minio.errors.InvalidResponseException |
+             InvalidKeyException |
+             NoSuchAlgorithmException |
+             IOException e) {
+        System.out.println("Error al subir a MinIO: " + e.getMessage());
+        return "Error al subir a MinIO";
     }
+}
+
 
     //sube archivo y registra versión
     public Archivo subirArchivo(String nombre) {
