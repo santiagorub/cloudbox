@@ -1,8 +1,8 @@
 public class SistemaCloudBox {
     private GestorVersiones gestor;
 
-    public SistemaCloudBox() {
-        gestor = GestorVersiones.getInstancia();
+    public SistemaCloudBox(String endpoint, String user, String password) {
+        gestor = GestorVersiones.getInstancia(endpoint, user, password);
         gestor.agregarObserver(new Notificador());
     }
 

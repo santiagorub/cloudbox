@@ -1,17 +1,16 @@
-# Imagen base con Java
 FROM openjdk:17-jdk-slim
 
-# Directorio de trabajo
 WORKDIR /app
-
-# Copiar el código fuente
 COPY src /app/src
 
-# Crear carpeta para archivos simulados
-RUN mkdir /app/archivos
+# Descargar dependencia MinIO SDK
+RUN apt-get update && apt-get install -y wget && \
+    wget https://repo1.maven.org/maven2/io/minio/minio/8.5.7/minio-8.5.7.jar -O /app/minio.jar
 
-# Compilar
-RUN javac src/*.java
+RUN javac -cp /app/minio.jar src/*.java
 
-# Ejecutar
-CMD ["java", "-cp", "src", "Main"]
+ENV MINIO_ENDPOINT="http://minio:9000"
+ENV MINIO_ACCESS_KEY="admin"
+ENV MINIO_SECRET_KEY="admin123"
+
+CMD ["java", "-cp", "src:/app/minio.jar", "Main"]

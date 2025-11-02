@@ -1,25 +1,44 @@
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import io.minio.errors.MinioException;
+import io.minio.http.Method;
+
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.*;
 import java.util.*;
 
 public class GestorVersiones {
     private static GestorVersiones instancia;
     private Map<String, List<Archivo>> archivos;
     private List<Observer> observadores;
+    private MinioClient minioClient;
+    private String bucketName = "cloudbox";
 
-    private GestorVersiones() {
+    private GestorVersiones(String endpoint, String accessKey, String secretKey) {
         archivos = new HashMap<>();
         observadores = new ArrayList<>();
+
+        minioClient = MinioClient.builder()
+                .endpoint(endpoint)
+                .credentials(accessKey, secretKey)
+                .build();
+
+        try {
+            boolean exists = minioClient.bucketExists(b -> b.bucket(bucketName));
+            if (!exists) {
+                minioClient.makeBucket(b -> b.bucket(bucketName));
+                System.out.println("Bucket creado: " + bucketName);
+            }
+        } catch (Exception e) {
+            System.out.println("Error verificando bucket: " + e.getMessage());
+        }
     }
 
-    public static GestorVersiones getInstancia() {
-        if (instancia == null) instancia = new GestorVersiones();
+    public static GestorVersiones getInstancia(String endpoint, String accessKey, String secretKey) {
+        if (instancia == null)
+            instancia = new GestorVersiones(endpoint, accessKey, secretKey);
         return instancia;
     }
 
@@ -31,35 +50,38 @@ public class GestorVersiones {
         for (Observer obs : observadores) obs.actualizar(mensaje);
     }
 
-    // Simula crear un archivo físico temporal
     private Path crearArchivoTemporal(String nombre, int version) throws IOException {
         Path carpeta = Path.of("archivos");
         if (!Files.exists(carpeta)) Files.createDirectory(carpeta);
 
-        Path archivo = carpeta.resolve(nombre + "_v" + version + ".txt");
-        Files.writeString(archivo, "Archivo " + nombre + " versión " + version);
+        String safeName = nombre.replaceAll("[^a-zA-Z0-9._-]", "_");
+        Path archivo = carpeta.resolve(safeName + "_v" + version + ".txt");
+        Files.writeString(archivo, "Contenido de " + nombre + " - versión " + version + "\n");
         return archivo;
     }
 
-    // Enviar archivo a Vercel Blob Storage
-    private String subirAVercel(Path rutaArchivo) {
-        try {
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("https://TU-API-VERCEL.vercel.app/api/upload")) // ⚠️ Cambia esto por tu URL
-                    .header("Content-Type", "application/octet-stream")
-                    .POST(HttpRequest.BodyPublishers.ofFile(rutaArchivo))
-                    .build();
+    private String subirAMinIO(Path rutaArchivo) {
+        try (FileInputStream fis = new FileInputStream(rutaArchivo.toFile())) {
+            String objectName = rutaArchivo.getFileName().toString();
 
-            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            // Extrae la URL del JSON devuelto
-            String body = response.body();
-            int start = body.indexOf("http");
-            int end = body.lastIndexOf("\"");
-            return (start != -1 && end != -1) ? body.substring(start, end) : "URL no disponible";
-        } catch (IOException | InterruptedException e) {
-            System.out.println("Error al subir a Vercel: " + e.getMessage());
-            return "Error de conexión";
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .stream(fis, rutaArchivo.toFile().length(), -1)
+                            .contentType("text/plain")
+                            .build()
+            );
+
+            String url = minioClient.getPresignedObjectUrl(
+                    b -> b.bucket(bucketName).object(objectName).method(Method.GET)
+            );
+
+            return url;
+
+        } catch (MinioException | IOException e) {
+            System.out.println("Error al subir a MinIO: " + e.getMessage());
+            return "Error al subir a MinIO";
         }
     }
 
@@ -69,7 +91,7 @@ public class GestorVersiones {
             int nuevaVersion = versiones.size() + 1;
 
             Path archivoTemp = crearArchivoTemporal(nombre, nuevaVersion);
-            String url = subirAVercel(archivoTemp);
+            String url = subirAMinIO(archivoTemp);
 
             Archivo nuevoArchivo = new Archivo(nombre, nuevaVersion, url);
             versiones.add(nuevoArchivo);
@@ -100,7 +122,7 @@ public class GestorVersiones {
 
     private void guardarRegistro(Archivo archivo) {
         try (FileWriter fw = new FileWriter("historial.txt", true)) {
-            fw.write(archivo.toString() + "\n");
+            fw.write(archivo.toString() + System.lineSeparator());
         } catch (IOException e) {
             System.out.println("Error al guardar el registro: " + e.getMessage());
         }

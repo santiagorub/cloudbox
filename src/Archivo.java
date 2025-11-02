@@ -5,7 +5,7 @@ public class Archivo {
     private String nombre;
     private int version;
     private String fecha;
-    private String url; // URL devuelta por Vercel
+    private String url;
 
     public Archivo(String nombre, int version, String url) {
         this.nombre = nombre;
