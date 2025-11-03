@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y wget && \
     wget https://repo1.maven.org/maven2/com/fasterxml/jackson/core/jackson-annotations/2.13.3/jackson-annotations-2.13.3.jar -O /app/jackson-annotations.jar && \
     wget https://repo1.maven.org/maven2/com/google/guava/guava/31.1-jre/guava-31.1-jre.jar -O /app/guava.jar && \
     wget https://repo1.maven.org/maven2/org/xerial/snappy/snappy-java/1.1.10.1/snappy-java-1.1.10.1.jar -O /app/snappy.jar && \
-    wget https://repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar -O /app/commons-compress.jar
+    wget https://repo1.maven.org/maven2/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar -O /app/commons-compress.jar && \
+    wget https://repo1.maven.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/1.7.10/kotlin-stdlib-1.7.10.jar -O /app/kotlin-stdlib.jar
 
 # Compilar el código Java
 RUN javac -cp "/app/*" src/*.java
