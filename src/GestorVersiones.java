@@ -84,7 +84,7 @@ public class GestorVersiones {
     try (FileInputStream fis = new FileInputStream(rutaArchivo.toFile())) {
         String objectName = rutaArchivo.getFileName().toString();
 
-        // Subir archivo al bucket
+        //bubir archivo al bucket
         minioClient.putObject(
                 PutObjectArgs.builder()
                         .bucket(bucketName)
@@ -94,7 +94,7 @@ public class GestorVersiones {
                         .build()
         );
 
-        // Obtener URL temporal de acceso
+        //obtener URL temporal de acceso
         String url = minioClient.getPresignedObjectUrl(
                 GetPresignedObjectUrlArgs.builder()
                         .method(Method.GET)
