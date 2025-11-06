@@ -1,0 +1,4 @@
+- [x] Update ApiServer.java: Change the System.out.println statement to reflect port 4567 instead of 8080.
+- [x] Modify GestorVersiones.java: Enhance listarArchivosComoJson() to return a JSON array of objects, each containing "nombre" and "versiones" (an array of objects with "version" and "url").
+- [x] Modify ApiServer.java: In the /historial endpoint, replace the dummy response with the JSON from sistema.listarArchivosComoJson().
+- [ ] Test file upload and the /historial endpoint to ensure they work correctly.

@@ -27,9 +27,7 @@ export default function Historial() {
           {archivos.map((a, i) => (
             <li key={i}>
               <strong>{a.nombre}</strong> (versión {a.version}) —{" "}
-              <a href={a.url} target="_blank" rel="noreferrer">
-                Ver archivo
-              </a>
+              <span>{new Date(a.fecha).toLocaleString()}</span>
             </li>
           ))}
         </ul>

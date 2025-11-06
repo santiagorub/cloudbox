@@ -7,7 +7,7 @@ export default function UploadFile() {
 
   const handleUpload = async () => {
     if (!file) {
-      setMessage("⚠️ Selecciona un archivo antes de subirlo.");
+      setMessage("Selecciona un archivo antes de subirlo.");
       return;
     }
 
@@ -18,10 +18,10 @@ export default function UploadFile() {
       const res = await axios.post("http://localhost:8080/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setMessage("✅ " + res.data);
+      setMessage("Se subio el archivo correctamente.");
     } catch (err) {
       console.error(err);
-      setMessage("❌ Error al subir el archivo.");
+      setMessage("Error al subir el archivo.");
     }
   };
 

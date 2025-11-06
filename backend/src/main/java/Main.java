@@ -6,7 +6,7 @@ public class Main {
         String user = System.getenv("MINIO_ACCESS_KEY");
         String password = System.getenv("MINIO_SECRET_KEY");
 
-        SistemaCloudBox sistema = new SistemaCloudBox(endpoint, user, password);
+        SistemaCloudBox sistema = new SistemaCloudBox(endpoint, user, password, null);
 
         Scanner sc = new Scanner(System.in);
         int opcion;
@@ -24,7 +24,10 @@ public class Main {
                 case 1:
                     System.out.print("Ingrese el nombre del archivo: ");
                     String nombre = sc.nextLine();
-                    sistema.subirArchivo(nombre);
+                    Archivo subido = sistema.subirArchivo(nombre);
+                    if (subido == null) {
+                        System.out.println("Error: No se pudo subir el archivo.");
+                    }
                     break;
                 case 2:
                     sistema.mostrarHistorial();
