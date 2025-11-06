@@ -35,7 +35,7 @@ export default function Historial() {
         </ul>
       )}
       <button onClick={cargarHistorial} style={{ marginTop: "1rem" }}>
-        🔄 Actualizar
+        Actualizar
       </button>
     </div>
   );
